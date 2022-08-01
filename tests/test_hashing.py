@@ -54,3 +54,32 @@ def test_whitespace():
     ]
 
     assert len(set(results)) == 1
+
+
+def test_expected_hashes():
+    """Test against expected hashes."""
+
+    test_cases = [
+        (
+            '{"run_name": "MARATHON", "well_label": "A1"}',
+            "cda15311f706217e31e32d42d524bc35662a6fc15623ce5abe6a31ed741801ae",
+        ),
+        (
+            '{"run_name": "SEMI-MARATHON", "well_label": "D1"}',
+            "b55417615e458c23049cc84822531a435c0c4069142f0e1d5e4378d48d9f7bd2",
+        ),
+        (
+            '{"run_name": "MARATHON", "well_label": "D1"}',
+            "1043340167120b5b75b4c76a364b72f960e429f0103a03208f257d3ed8994196",
+        ),
+        (
+            '{"run_name": "SEMI-MARATHON", "well_label": "B1"}',
+            "e2a676471c83dafafd1f93628e492c064dbf762a6983e7baa723d60f015d05fc",
+        ),
+    ]
+
+    for json_str, expected_hash in test_cases:
+        assert (
+            PacBioEntity.parse_raw(json_str, content_type="json").hash_product_id()
+            == expected_hash
+        )
