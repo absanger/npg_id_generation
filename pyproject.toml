@@ -14,6 +14,9 @@ pytest = "^7.1.2"
 black = "^22.6.0"
 flake8 = "^4.0.1"
 
+[tool.poetry.scripts]
+generate_pac_bio_id = { reference = "bin/generate_pac_bio_id", type = "file", extras = [] }
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
