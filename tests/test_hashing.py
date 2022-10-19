@@ -17,8 +17,10 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests checking the hashing behaviour of input objects."""
+"""Tests checking the hashing behaviour of objects."""
 
+import pytest
+from pydantic import ValidationError
 from npg_id_generation.main import PacBioEntity
 
 
@@ -54,6 +56,57 @@ def test_whitespace():
     ]
 
     assert len(set(results)) == 1
+
+
+def test_different_ways_to_create_object():
+
+    results = []
+    results.append(PacBioEntity(run_name="MARATHON", well_label="A1").hash_product_id())
+    results.append(PacBioEntity(well_label="A1", run_name="MARATHON").hash_product_id())
+    results.append(
+        PacBioEntity(run_name="MARATHON", well_label="A1", tags=None).hash_product_id()
+    )
+    results.append(
+        PacBioEntity.parse_raw(
+            '{"run_name": "MARATHON", "well_label": "A1"}', content_type="json"
+        ).hash_product_id()
+    )
+    assert len(set(results)) == 1
+
+    with pytest.raises(ValidationError) as excinfo:
+        PacBioEntity(run_name="MARATHON", well_label="A1", some_arg=3)
+    assert "extra fields not permitted" in str(excinfo.value)
+
+
+def test_tags_make_difference():
+
+    id_1 = PacBioEntity(
+        run_name="MARATHON", well_label="A1", tags="acgt"
+    ).hash_product_id()
+    id_2 = PacBioEntity(
+        run_name="MARATHON", well_label="A1", tags="actg"
+    ).hash_product_id()
+    id_3 = PacBioEntity(run_name="MARATHON", well_label="A1").hash_product_id()
+    assert id_1 != id_2
+    assert id_3 != id_2
+
+
+def test_attributes_cannot_be_empty():
+
+    with pytest.raises(ValidationError) as excinfo:
+        PacBioEntity(run_name="MARATHON", well_label="A1", tags="")
+    assert "Cannot be an empty string" in str(excinfo.value)
+    with pytest.raises(ValidationError) as excinfo:
+        PacBioEntity(run_name="", well_label="A1")
+    assert "Cannot be an empty string" in str(excinfo.value)
+    with pytest.raises(ValidationError) as excinfo:
+        PacBioEntity(run_name="MARATHON", well_label="")
+    assert "Cannot be an empty string" in str(excinfo.value)
+    with pytest.raises(ValidationError) as excinfo:
+        PacBioEntity.parse_raw(
+            '{"run_name": "MARATHON", "well_label": ""}', content_type="json"
+        )
+    assert "Cannot be an empty string" in str(excinfo.value)
 
 
 def test_expected_hashes():
