@@ -39,11 +39,11 @@ print(PacBioEntity(run_name="MARATHON", well_label="D1", tags="AAGTACGT").hash_p
 
 All generators should conform to a few simple rules:
 
-1. Uniquness of the ID should be guaranteed.
+1. Uniqueness of the ID should be guaranteed.
 2. The ID should be a 64 characher string.
 3. It should be possible to generate an ID from a JSON string.
 4. The value of the ID should **not** depend on the order of attributes given
-   to the cinstructor or the order of keys used in JSON.
+   to the constructor or the order of keys used in JSON.
 5. The value of the ID should **not** depend on the amount of whitespace in
    the input JSON.
 6. The value of the ID should **not** depend on whether the undefined values
