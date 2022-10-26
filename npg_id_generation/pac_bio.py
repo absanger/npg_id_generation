@@ -18,22 +18,35 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 from hashlib import sha256
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Extra, Field, validator
 
 
-class PacBioEntity(BaseModel):
-    """A PacBio entity class used to create hashes."""
+class PacBioEntity(BaseModel, extra=Extra.forbid):
+    """A PacBio entity class for ID generation."""
 
     # Order these alphabetically, to allow for interoperability with
     # a possible Perl API.
     # Alternatively the sorting could be achieved with json.dumps()'s
     # sort_keys argument. See https://docs.python.org/3/library/json.html#basic-usage
-    run_name: str
-    well_label: str
-    tags: str = Field(default=None)
+    run_name: str = Field(title="Pac Bio run name as in LIMS")
+    well_label: str = Field(title="Pac Bio well label")
+    tags: str = Field(
+        default=None,
+        title="A string representing tag or tags",
+        description="""
+        A string representing a single tag (index) sequence or a comma-separated
+        list of multiple tags. It is important to order multiple tags consistently.
+        """,
+    )
+
+    @validator("run_name", "well_label", "tags")
+    def attributes_are_non_empty_strings(cls, v):
+        if (v is not None) and (v == ""):
+            raise ValueError("Cannot be an empty string")
+        return v
 
     def hash_product_id(self):
-        """Generate a sha256sum for the PacBioWell"""
+        """Generate a sha256sum for the PacBio Entity"""
 
         return sha256(
             self.json(exclude_none=True, separators=(",", ":")).encode()
