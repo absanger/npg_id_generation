@@ -26,10 +26,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        mysql-version: ["5.7", "8.0"]
-
     steps:
       - uses: actions/checkout@v3
 
@@ -46,6 +42,7 @@ jobs:
         run: |
           poetry env use '3.10'
           poetry install
+          poetry self add "poetry-dynamic_versioning[plugin]"
 
       - name: Run pytest
         run: |
