@@ -21,7 +21,7 @@
 
 import pytest
 from pydantic import ValidationError
-from npg_id_generation.main import PacBioEntity
+from npg_id_generation.pac_bio import PacBioEntity
 
 
 def test_different_orderings():

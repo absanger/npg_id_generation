@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "npg_id_generation"
-version = "0.1.0"
+version = "0.0.0"
 description = "Product ID generation."
 authors = ["Adam Blanchet <ab59@sanger.ac.uk>"]
 license = "GPL3-or-later"
@@ -14,9 +14,14 @@ pytest = "^7.1.2"
 black = "^22.6.0"
 flake8 = "^4.0.1"
 
+[tool.poetry-dynamic-versioning]
+enable = true
+pattern = '^((?P<epoch>\d+)!)?(?P<base>\d+(\.\d+)*)([-._]?((?P<stage>[a-zA-Z]+)[-._]?(?P<revision>\d+)?))?(\+(?P<tagged_metadata>.+))?$'
+format-jinja = "{% if distance == 0 %}{{ base }}{% else %}{{ base }}+{{ distance }}.{{ commit }}{% endif %}"
+
 [tool.poetry.scripts]
 generate_pac_bio_id = { reference = "bin/generate_pac_bio_id", type = "file", extras = [] }
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
+build-backend = "poetry_dynamic_versioning.backend"
