@@ -31,12 +31,19 @@ parser.add_argument(
 
 parser.add_argument("well_label", type=str, help="The well label")
 
+parser.add_argument(
+    "tags",
+    type=str,
+    required=False,
+    help="A comma separated list of tag sequences to include in id generation",
+)
+
 args = parser.parse_args()
 
 
 def main():
     print(
-        f"{PacBioEntity(run_name=args.run_name, well_label=args.well_label).hash_product_id()}\n"
+        f"{PacBioEntity(run_name=args.run_name, well_label=args.well_label, tags=args.tags).hash_product_id()}\n"
     )
 
 
