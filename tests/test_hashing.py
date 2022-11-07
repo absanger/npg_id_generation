@@ -149,5 +149,14 @@ def test_tags_sorted():
     pb_entity_2 = PacBioEntity(
         run_name="MARATHON", well_label="A1", tags="ACGT,AACG,TGAC,TCGA"
     )
-    assert pb_entity_2.tags == pb_entity_1.tags
-    assert pb_entity_1.hash_product_id() == pb_entity_2.hash_product_id()
+
+    pb_entity_3 = PacBioEntity.parse_raw(
+        '{"run_name": "MARATHON", "well_label": "A1", "tags": "TGAC,TCGA,AACG,ACGT"}'
+    )
+
+    assert pb_entity_1.tags == pb_entity_2.tags == pb_entity_3.tags
+    assert (
+        pb_entity_3.hash_product_id()
+        == pb_entity_2.hash_product_id()
+        == pb_entity_3.hash_product_id()
+    )
