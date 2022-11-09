@@ -45,6 +45,14 @@ class PacBioEntity(BaseModel, extra=Extra.forbid):
             raise ValueError("Cannot be an empty string")
         return v
 
+    @validator("tags")
+    def sort_tags(cls, v):
+        if v is None:
+            return v
+        tags = v.split(",")
+        tags.sort()
+        return ",".join(tags)
+
     def hash_product_id(self):
         """Generate a sha256sum for the PacBio Entity"""
 
