@@ -136,3 +136,27 @@ def test_expected_hashes():
             PacBioEntity.parse_raw(json_str, content_type="json").hash_product_id()
             == expected_hash
         )
+
+
+def test_tags_sorted():
+    """Test that tags are automatically sorted alphabetically before id generation"""
+
+    pb_entity_1 = PacBioEntity(
+        run_name="MARATHON", well_label="A1", tags="TCGA,ACGT,TGAC,AACG"
+    )
+    assert pb_entity_1.tags == "AACG,ACGT,TCGA,TGAC"
+
+    pb_entity_2 = PacBioEntity(
+        run_name="MARATHON", well_label="A1", tags="ACGT,AACG,TGAC,TCGA"
+    )
+
+    pb_entity_3 = PacBioEntity.parse_raw(
+        '{"run_name": "MARATHON", "well_label": "A1", "tags": "TGAC,TCGA,AACG,ACGT"}'
+    )
+
+    assert pb_entity_1.tags == pb_entity_2.tags == pb_entity_3.tags
+    assert (
+        pb_entity_3.hash_product_id()
+        == pb_entity_2.hash_product_id()
+        == pb_entity_3.hash_product_id()
+    )
