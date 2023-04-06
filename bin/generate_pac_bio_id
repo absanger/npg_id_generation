@@ -19,6 +19,7 @@
 # @author Michael Kubiak <mk35@sanger.ac.uk>
 
 import argparse
+
 from npg_id_generation.pac_bio import PacBioEntity
 
 parser = argparse.ArgumentParser(

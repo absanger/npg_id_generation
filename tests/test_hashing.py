@@ -1,26 +1,8 @@
-# Copyright (c) 2022 Genome Research Ltd.
-#
-# Author: Adam Blanchet <ab59@sanger.ac.uk>
-#
-# This file is part of npg_id_generation.
-#
-# npg_langqc is free software: you can redistribute it and/or modify it under
-# the terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 3 of the License, or (at your option) any later
-# version.
-#
-# This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
-# details.
-#
-# You should have received a copy of the GNU General Public License along with
-# this program. If not, see <http://www.gnu.org/licenses/>.
-
 """Tests checking the hashing behaviour of objects."""
 
 import pytest
 from pydantic import ValidationError
+
 from npg_id_generation.pac_bio import PacBioEntity
 
 
@@ -138,25 +120,20 @@ def test_expected_hashes():
         )
 
 
-def test_tags_sorted():
-    """Test that tags are automatically sorted alphabetically before id generation"""
+def test_tags_not_sorted():
+    """Test that tags are not changed prior to id generation"""
 
-    pb_entity_1 = PacBioEntity(
-        run_name="MARATHON", well_label="A1", tags="TCGA,ACGT,TGAC,AACG"
-    )
-    assert pb_entity_1.tags == "AACG,ACGT,TCGA,TGAC"
+    run = "MARATHON"
+    well = "A1"
+    # Tags in these strings are the same, the difference is
+    # in the order.
+    tags_strings = ["TCGA,ACGT,TGAC,AACG", "ACGT,AACG,TGAC,TCGA", "TGAC,TCGA,AACG,ACGT"]
+    pb_entities = []
+    for tag_string in tags_strings:
+        pb_entities.append(PacBioEntity(run_name=run, well_label=well, tags=tag_string))
 
-    pb_entity_2 = PacBioEntity(
-        run_name="MARATHON", well_label="A1", tags="ACGT,AACG,TGAC,TCGA"
-    )
-
-    pb_entity_3 = PacBioEntity.parse_raw(
-        '{"run_name": "MARATHON", "well_label": "A1", "tags": "TGAC,TCGA,AACG,ACGT"}'
-    )
-
-    assert pb_entity_1.tags == pb_entity_2.tags == pb_entity_3.tags
     assert (
-        pb_entity_3.hash_product_id()
-        == pb_entity_2.hash_product_id()
-        == pb_entity_3.hash_product_id()
+        pb_entities[0].hash_product_id()
+        != pb_entities[1].hash_product_id()
+        != pb_entities[2].hash_product_id()
     )
