@@ -23,20 +23,41 @@ import argparse
 from npg_id_generation.pac_bio import PacBioEntity
 
 parser = argparse.ArgumentParser(
-    description="A script to generate a product id for a pac bio product from a given run and well"
+    description="Generates a 64 character product id for a pac bio product.",
+    formatter_class=argparse.RawTextHelpFormatter,
 )
 
 parser.add_argument(
-    "run_name", type=str, help="The name of the run to which the product belongs"
+    "-r",
+    "--run_name",
+    type=str,
+    required=True,
+    help="The name of the run to which the product belongs.",
 )
 
-parser.add_argument("well_label", type=str, help="The well label")
+parser.add_argument(
+    "-w",
+    "--well_label",
+    required=True,
+    type=str,
+    help="""
+The well in which the product was sequenced. 
+A well label should fit the pattern A1.
+     """,
+)
 
 parser.add_argument(
     "--tags",
     type=str,
     required=False,
-    help="A comma separated list of tag sequences to include in id generation",
+    help="""
+A comma separated list of tag sequences to include in id generation.  
+This list is not resorted during id generation as it is expected 
+that more than one product may have the same set of tags ordered 
+differently. 
+Tags are expected to be DNA sequences.
+Tags should NOT be included in id generation for non-deplexed products.
+    """,
 )
 
 args = parser.parse_args()
