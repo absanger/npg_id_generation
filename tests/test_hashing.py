@@ -41,7 +41,6 @@ def test_whitespace():
 
 
 def test_different_ways_to_create_object():
-
     results = []
     results.append(PacBioEntity(run_name="MARATHON", well_label="A1").hash_product_id())
     results.append(PacBioEntity(well_label="A1", run_name="MARATHON").hash_product_id())
@@ -61,7 +60,6 @@ def test_different_ways_to_create_object():
 
 
 def test_tags_make_difference():
-
     id_1 = PacBioEntity(
         run_name="MARATHON", well_label="A1", tags="acgt"
     ).hash_product_id()
@@ -74,7 +72,6 @@ def test_tags_make_difference():
 
 
 def test_attributes_cannot_be_empty():
-
     with pytest.raises(ValidationError) as excinfo:
         PacBioEntity(run_name="MARATHON", well_label="A1", tags="")
     assert "Cannot be an empty string" in str(excinfo.value)
@@ -89,6 +86,71 @@ def test_attributes_cannot_be_empty():
             '{"run_name": "MARATHON", "well_label": ""}', content_type="json"
         )
     assert "Cannot be an empty string" in str(excinfo.value)
+
+
+def test_well_label_conforms_to_pattern():
+    with pytest.raises(ValidationError) as excinfo:
+        PacBioEntity(run_name="MARATHON", well_label=" A1")
+    assert (
+        "Well label must be an alphabetic character followed by a numeric character"
+        in str(excinfo.value)
+    )
+    with pytest.raises(ValidationError) as excinfo:
+        PacBioEntity(run_name="MARATHON", well_label="A1 ")
+    assert (
+        "Well label must be an alphabetic character followed by a numeric character"
+        in str(excinfo.value)
+    )
+    with pytest.raises(ValidationError) as excinfo:
+        PacBioEntity(run_name="MARATHON", well_label="A01")
+    assert (
+        "Well label must be an alphabetic character followed by a numeric character"
+        in str(excinfo.value)
+    )
+    with pytest.raises(ValidationError) as excinfo:
+        PacBioEntity(run_name="MARATHON", well_label="1A")
+    assert (
+        "Well label must be an alphabetic character followed by a numeric character"
+        in str(excinfo.value)
+    )
+    with pytest.raises(ValidationError) as excinfo:
+        PacBioEntity.parse_raw(
+            '{"run_name": "MARATHON", "well_label":"1A"}', content_type="json"
+        )
+    assert (
+        "Well label must be an alphabetic character followed by a numeric character"
+        in str(excinfo.value)
+    )
+
+
+def test_tags_have_correct_characters():
+    with pytest.raises(ValidationError) as excinfo:
+        PacBioEntity(run_name="MARATHON", well_label="A1", tags="ABCD")
+    assert "Tags should be a comma separated list of DNA sequences" in str(
+        excinfo.value
+    )
+    with pytest.raises(ValidationError) as excinfo:
+        PacBioEntity(run_name="MARATHON", well_label="A1", tags="ACGT.AGTC")
+    assert "Tags should be a comma separated list of DNA sequences" in str(
+        excinfo.value
+    )
+    with pytest.raises(ValidationError) as excinfo:
+        PacBioEntity(run_name="MARATHON", well_label="A1", tags=" ACGT")
+    assert "Tags should be a comma separated list of DNA sequences" in str(
+        excinfo.value
+    )
+    with pytest.raises(ValidationError) as excinfo:
+        PacBioEntity(run_name="MARATHON", well_label="A1", tags="ACGT ")
+    assert "Tags should be a comma separated list of DNA sequences" in str(
+        excinfo.value
+    )
+    with pytest.raises(ValidationError) as excinfo:
+        PacBioEntity.parse_raw(
+            '{"run_name":"MARATHON", "well_label":"A1", "tags":"ABCD"}'
+        )
+    assert "Tags should be a comma separated list of DNA sequences" in str(
+        excinfo.value
+    )
 
 
 def test_expected_hashes():

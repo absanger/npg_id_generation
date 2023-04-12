@@ -23,6 +23,7 @@
 from hashlib import sha256
 
 from pydantic import BaseModel, Extra, Field, validator
+import re
 
 
 class PacBioEntity(BaseModel, extra=Extra.forbid):
@@ -49,6 +50,20 @@ class PacBioEntity(BaseModel, extra=Extra.forbid):
     def attributes_are_non_empty_strings(cls, v):
         if (v is not None) and (v == ""):
             raise ValueError("Cannot be an empty string")
+        return v
+
+    @validator("well_label")
+    def well_label_conforms_to_pattern(cls, v):
+        if not re.match("^[A-Z][0-9]$", v):
+            raise ValueError(
+                "Well label must be an alphabetic character followed by a numeric character"
+            )
+        return v
+
+    @validator("tags")
+    def tags_have_correct_characters(cls, v):
+        if (v is not None) and (not re.match("^[ACGT,]*$", v)):
+            raise ValueError("Tags should be a comma separated list of DNA sequences")
         return v
 
     def hash_product_id(self):
