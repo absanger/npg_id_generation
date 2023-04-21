@@ -1,6 +1,9 @@
-# Copyright (c) 2022 Genome Research Ltd.
+# Copyright (c) 2022, 2023 Genome Research Ltd.
 #
-# Author: Adam Blanchet <ab59@sanger.ac.uk>
+# Authors:
+#   Adam Blanchet <ab59@sanger.ac.uk>
+#   Michael Kubiak <mk35@sanger.ac.uk>
+#   Marina Gourtovaia <mg8@sanger.ac.uk>
 #
 # This file is part of npg_id_generation.
 #
@@ -18,14 +21,15 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 from hashlib import sha256
+
 from pydantic import BaseModel, Extra, Field, validator
 
 
 class PacBioEntity(BaseModel, extra=Extra.forbid):
-    """A PacBio entity class for ID generation."""
+    """A PacBio class for product ID generation."""
 
-    # Order these alphabetically, to allow for interoperability with
-    # a possible Perl API.
+    # Order the attributes alphabetically, to allow for interoperability
+    # with a possible Perl API.
     # Alternatively the sorting could be achieved with json.dumps()'s
     # sort_keys argument. See https://docs.python.org/3/library/json.html#basic-usage
     run_name: str = Field(title="Pac Bio run name as in LIMS")
@@ -34,8 +38,10 @@ class PacBioEntity(BaseModel, extra=Extra.forbid):
         default=None,
         title="A string representing tag or tags",
         description="""
-        A string representing a single tag (index) sequence or a comma-separated
-        list of multiple tags. It is important to order multiple tags consistently.
+        A string representing a single barcode index sequence (tag) or
+        a comma-separated list of multiple tags. The order of tags in
+        the list is meaningful for the purpose of product identification,
+        therefore it should not be changed by the code of this class.
         """,
     )
 
@@ -44,14 +50,6 @@ class PacBioEntity(BaseModel, extra=Extra.forbid):
         if (v is not None) and (v == ""):
             raise ValueError("Cannot be an empty string")
         return v
-
-    @validator("tags")
-    def sort_tags(cls, v):
-        if v is None:
-            return v
-        tags = v.split(",")
-        tags.sort()
-        return ",".join(tags)
 
     def hash_product_id(self):
         """Generate a sha256sum for the PacBio Entity"""
