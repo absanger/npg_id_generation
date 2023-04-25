@@ -30,6 +30,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "-r",
     "--run_name",
+    "--run-name",
     type=str,
     required=True,
     help="The name of the run to which the product belongs.",
@@ -38,6 +39,7 @@ parser.add_argument(
 parser.add_argument(
     "-w",
     "--well_label",
+    "--well-label",
     required=True,
     type=str,
     help="""

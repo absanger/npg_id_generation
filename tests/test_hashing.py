@@ -89,66 +89,33 @@ def test_attributes_cannot_be_empty():
 
 
 def test_well_label_conforms_to_pattern():
-    with pytest.raises(ValidationError) as excinfo:
-        PacBioEntity(run_name="MARATHON", well_label=" A1")
-    assert (
-        "Well label must be an alphabetic character followed by a numeric character"
-        in str(excinfo.value)
-    )
-    with pytest.raises(ValidationError) as excinfo:
-        PacBioEntity(run_name="MARATHON", well_label="A1 ")
-    assert (
-        "Well label must be an alphabetic character followed by a numeric character"
-        in str(excinfo.value)
-    )
-    with pytest.raises(ValidationError) as excinfo:
-        PacBioEntity(run_name="MARATHON", well_label="A01")
-    assert (
-        "Well label must be an alphabetic character followed by a numeric character"
-        in str(excinfo.value)
-    )
-    with pytest.raises(ValidationError) as excinfo:
-        PacBioEntity(run_name="MARATHON", well_label="1A")
-    assert (
-        "Well label must be an alphabetic character followed by a numeric character"
-        in str(excinfo.value)
-    )
+    bad_labels = [" A1", "A1 ", "A01", "1A"]
+    for label in bad_labels:
+        with pytest.raises(ValidationError) as excinfo:
+            PacBioEntity(run_name="MARATHON", well_label=label)
+        assert (
+            "Well label must be an alphabetic character followed by a number between 1 and 99"
+            in str(excinfo.value)
+        )
     with pytest.raises(ValidationError) as excinfo:
         PacBioEntity.parse_raw(
             '{"run_name": "MARATHON", "well_label":"1A"}', content_type="json"
         )
     assert (
-        "Well label must be an alphabetic character followed by a numeric character"
+        "Well label must be an alphabetic character followed by a number between 1 and 99"
         in str(excinfo.value)
     )
 
 
 def test_tags_have_correct_characters():
-    with pytest.raises(ValidationError) as excinfo:
-        PacBioEntity(run_name="MARATHON", well_label="A1", tags="ABCD")
-    assert "Tags should be a comma separated list of uppercase DNA sequences" in str(
-        excinfo.value
-    )
-    with pytest.raises(ValidationError) as excinfo:
-        PacBioEntity(run_name="MARATHON", well_label="A1", tags="ACGT.AGTC")
-    assert "Tags should be a comma separated list of uppercase DNA sequences" in str(
-        excinfo.value
-    )
-    with pytest.raises(ValidationError) as excinfo:
-        PacBioEntity(run_name="MARATHON", well_label="A1", tags=" ACGT")
-    assert "Tags should be a comma separated list of uppercase DNA sequences" in str(
-        excinfo.value
-    )
-    with pytest.raises(ValidationError) as excinfo:
-        PacBioEntity(run_name="MARATHON", well_label="A1", tags="ACGT ")
-    assert "Tags should be a comma separated list of uppercase DNA sequences" in str(
-        excinfo.value
-    )
-    with pytest.raises(ValidationError) as excinfo:
-        PacBioEntity(run_name="MARATHON", well_label="A1", tags="acgt")
-    assert "Tags should be a comma separated list of uppercase DNA sequences" in str(
-        excinfo.value
-    )
+    bad_tags = ["ABCD", "ACGT.AGTC", " ACGT", "ACGT ", "acgt"]
+    for tag in bad_tags:
+        with pytest.raises(ValidationError) as excinfo:
+            PacBioEntity(run_name="MARATHON", well_label="A1", tags=tag)
+        assert (
+            "Tags should be a comma separated list of uppercase DNA sequences"
+            in str(excinfo.value)
+        )
     with pytest.raises(ValidationError) as excinfo:
         PacBioEntity.parse_raw(
             '{"run_name":"MARATHON", "well_label":"A1", "tags":"ABCD"}'
