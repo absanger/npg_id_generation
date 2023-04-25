@@ -61,10 +61,10 @@ def test_different_ways_to_create_object():
 
 def test_tags_make_difference():
     id_1 = PacBioEntity(
-        run_name="MARATHON", well_label="A1", tags="acgt"
+        run_name="MARATHON", well_label="A1", tags="ACGT"
     ).hash_product_id()
     id_2 = PacBioEntity(
-        run_name="MARATHON", well_label="A1", tags="actg"
+        run_name="MARATHON", well_label="A1", tags="ACTG"
     ).hash_product_id()
     id_3 = PacBioEntity(run_name="MARATHON", well_label="A1").hash_product_id()
     assert id_1 != id_2
@@ -126,29 +126,34 @@ def test_well_label_conforms_to_pattern():
 def test_tags_have_correct_characters():
     with pytest.raises(ValidationError) as excinfo:
         PacBioEntity(run_name="MARATHON", well_label="A1", tags="ABCD")
-    assert "Tags should be a comma separated list of DNA sequences" in str(
+    assert "Tags should be a comma separated list of uppercase DNA sequences" in str(
         excinfo.value
     )
     with pytest.raises(ValidationError) as excinfo:
         PacBioEntity(run_name="MARATHON", well_label="A1", tags="ACGT.AGTC")
-    assert "Tags should be a comma separated list of DNA sequences" in str(
+    assert "Tags should be a comma separated list of uppercase DNA sequences" in str(
         excinfo.value
     )
     with pytest.raises(ValidationError) as excinfo:
         PacBioEntity(run_name="MARATHON", well_label="A1", tags=" ACGT")
-    assert "Tags should be a comma separated list of DNA sequences" in str(
+    assert "Tags should be a comma separated list of uppercase DNA sequences" in str(
         excinfo.value
     )
     with pytest.raises(ValidationError) as excinfo:
         PacBioEntity(run_name="MARATHON", well_label="A1", tags="ACGT ")
-    assert "Tags should be a comma separated list of DNA sequences" in str(
+    assert "Tags should be a comma separated list of uppercase DNA sequences" in str(
+        excinfo.value
+    )
+    with pytest.raises(ValidationError) as excinfo:
+        PacBioEntity(run_name="MARATHON", well_label="A1", tags="acgt")
+    assert "Tags should be a comma separated list of uppercase DNA sequences" in str(
         excinfo.value
     )
     with pytest.raises(ValidationError) as excinfo:
         PacBioEntity.parse_raw(
             '{"run_name":"MARATHON", "well_label":"A1", "tags":"ABCD"}'
         )
-    assert "Tags should be a comma separated list of DNA sequences" in str(
+    assert "Tags should be a comma separated list of uppercase DNA sequences" in str(
         excinfo.value
     )
 
