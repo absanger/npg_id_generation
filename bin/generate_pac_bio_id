@@ -20,7 +20,7 @@
 
 import argparse
 
-from npg_id_generation.pac_bio import PacBioEntity
+from npg_id_generation.pac_bio import PacBioEntity, concatenate_tags
 
 parser = argparse.ArgumentParser(
     description="Generates a 64 character product id for a pac bio product.",
@@ -49,14 +49,14 @@ A well label should fit the pattern A1.
 )
 
 parser.add_argument(
-    "--tags",
+    "--tag",
     type=str,
     required=False,
+    action="append",
     help="""
-A comma separated list of tag sequences to include in id generation.  
-This list is not resorted during id generation as it is expected 
-that more than one product may have the same set of tags ordered 
-differently. 
+A tag sequence to be included in id generation.
+The tag argument can be given multiple times, and should be ordered 
+consistently to obtain a consistent product id.
 Tags are expected to be DNA sequences.
 Tags should NOT be included in id generation for non-deplexed products.
     """,
@@ -64,11 +64,13 @@ Tags should NOT be included in id generation for non-deplexed products.
 
 args = parser.parse_args()
 
+separator = ","
+
 
 def main():
-    print(
-        f"{PacBioEntity(run_name=args.run_name, well_label=args.well_label, tags=args.tags).hash_product_id()}\n"
-    )
+    tags = concatenate_tags(args.tag)
+    entity = PacBioEntity(run_name=args.run_name, well_label=args.well_label, tags=tags)
+    print(f"{entity.hash_product_id()}\n")
 
 
 if __name__ == "__main__":

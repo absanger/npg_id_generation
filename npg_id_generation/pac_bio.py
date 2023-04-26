@@ -26,6 +26,22 @@ from pydantic import BaseModel, Extra, Field, validator
 import re
 
 
+def concatenate_tags(tags: list[str]):
+    """Concatenates a list of tags so that it can be used as an attribute in
+       the creation of a PacBioEntity.
+
+    Args:
+        tags: A list of tag sequences.
+
+    Returns:A comma separated string of tags or None
+
+    """
+    if not tags:
+        return None
+    else:
+        return ",".join(tags)
+
+
 class PacBioEntity(BaseModel, extra=Extra.forbid):
     """A PacBio class for product ID generation."""
 
