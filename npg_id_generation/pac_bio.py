@@ -23,6 +23,23 @@
 from hashlib import sha256
 
 from pydantic import BaseModel, Extra, Field, validator
+import re
+
+
+def concatenate_tags(tags: list[str]):
+    """Concatenates a list of tags so that it can be used as an attribute in
+       the creation of a PacBioEntity.
+
+    Args:
+        tags: A list of tag sequences.
+
+    Returns:A comma separated string of tags or None
+
+    """
+    if not tags:
+        return None
+    else:
+        return ",".join(tags)
 
 
 class PacBioEntity(BaseModel, extra=Extra.forbid):
@@ -49,6 +66,22 @@ class PacBioEntity(BaseModel, extra=Extra.forbid):
     def attributes_are_non_empty_strings(cls, v):
         if (v is not None) and (v == ""):
             raise ValueError("Cannot be an empty string")
+        return v
+
+    @validator("well_label")
+    def well_label_conforms_to_pattern(cls, v):
+        if not re.match("^[A-Z][1-9][0-9]?$", v):
+            raise ValueError(
+                "Well label must be an alphabetic character followed by a number between 1 and 99"
+            )
+        return v
+
+    @validator("tags")
+    def tags_have_correct_characters(cls, v):
+        if (v is not None) and (not re.match("^[ACGT,]+$", v)):
+            raise ValueError(
+                "Tags should be a comma separated list of uppercase DNA sequences"
+            )
         return v
 
     def hash_product_id(self):
