@@ -78,7 +78,7 @@ class PacBioEntity(BaseModel, extra=Extra.forbid):
 
     @validator("tags")
     def tags_have_correct_characters(cls, v):
-        if (v is not None) and (not re.match("^[ACGT,]+$", v)):
+        if (v is not None) and (not re.match("^[ACGT]+(,[ACGT]+)*$", v)):
             raise ValueError(
                 "Tags should be a comma separated list of uppercase DNA sequences"
             )

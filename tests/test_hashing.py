@@ -108,7 +108,18 @@ def test_well_label_conforms_to_pattern():
 
 
 def test_tags_have_correct_characters():
-    bad_tags = ["ABCD", "ACGT.AGTC", " ACGT", "ACGT ", "acgt"]
+    bad_tags = [
+        "ABCD",
+        "ACGT.AGTC",
+        " ACGT",
+        "ACGT ",
+        "acgt",
+        ",",
+        " ACCTG ",
+        "ACCTG,",
+        ",ACCTG",
+        "ACCTG,,GGTAC",
+    ]
     for tag in bad_tags:
         with pytest.raises(ValidationError) as excinfo:
             PacBioEntity(run_name="MARATHON", well_label="A1", tags=tag)
@@ -116,13 +127,6 @@ def test_tags_have_correct_characters():
             "Tags should be a comma separated list of uppercase DNA sequences"
             in str(excinfo.value)
         )
-    with pytest.raises(ValidationError) as excinfo:
-        PacBioEntity.parse_raw(
-            '{"run_name":"MARATHON", "well_label":"A1", "tags":"ABCD"}'
-        )
-    assert "Tags should be a comma separated list of uppercase DNA sequences" in str(
-        excinfo.value
-    )
 
 
 def test_expected_hashes():
