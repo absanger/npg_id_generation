@@ -6,11 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0]
+
 ### Changed
 
- - Add validators for well label pattern and tag characters
- - Improve generator script help messages and change so that only named 
-   arguments are used 
+ - Add validators for well label and tag patterns
+ - Improve generator script help messages and change so that only named
+   arguments are used
+ - Make tag argument repeatable and add internal logic for concatenation
 
 ## [2.0.0]
 
