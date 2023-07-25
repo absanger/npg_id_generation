@@ -45,12 +45,31 @@ def concatenate_tags(tags: list[str]):
 class PacBioEntity(BaseModel, extra=Extra.forbid):
     """A PacBio class for product ID generation."""
 
-    # Order the attributes alphabetically, to allow for interoperability
-    # with a possible Perl API.
-    # Alternatively the sorting could be achieved with json.dumps()'s
-    # sort_keys argument. See https://docs.python.org/3/library/json.html#basic-usage
+    """
+      Pydantic's current default is to serialize attributes in the order
+      they are listed. if this behaviour changes, we can restore it by
+      using json.dumps() sort_keys argument, see
+      https://docs.python.org/3/library/json.html#basic-usage
+
+      We are not using this explicit sort for now since it adds to the
+      execution time.
+
+      Order the attributes alphabetically!
+    """
+
     run_name: str = Field(title="Pac Bio run name as in LIMS")
     well_label: str = Field(title="Pac Bio well label")
+    plate_number: int = Field(
+        default=None,
+        ge=1,
+        title="Pac Bio plate number",
+        description="""
+        Plate number is a positive integer and is relevant for Revio
+        instruments only, thus it defaults to None.
+        To be backward-compatible with Revio product IDs generated so far,
+        when the value of this attribute is 1, we reset it to undefined.
+        """,
+    )
     tags: str = Field(
         default=None,
         title="A string representing tag or tags",
@@ -75,6 +94,10 @@ class PacBioEntity(BaseModel, extra=Extra.forbid):
                 "Well label must be an alphabetic character followed by a number between 1 and 99"
             )
         return v
+
+    @validator("plate_number")
+    def plate_number_default(cls, v):
+        return None if (v is None) or (v == 1) else v
 
     @validator("tags")
     def tags_have_correct_characters(cls, v):
