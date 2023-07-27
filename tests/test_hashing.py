@@ -129,6 +129,75 @@ def test_tags_have_correct_characters():
         )
 
 
+def test_plate_number_validation():
+
+    for n in [-1, 0]:
+        with pytest.raises(ValidationError) as excinfo:
+            PacBioEntity(run_name="MARATHON", well_label="A1", plate_number=n)
+        assert "ensure this value is greater than or equal to 1" in str(excinfo.value)
+
+
+def test_plate_number_defaults():
+    """Test backwards compatibility for the plate number"""
+
+    e1 = PacBioEntity(run_name="MARATHON", well_label="A1", tags="TAGC", plate_number=1)
+    e2 = PacBioEntity(run_name="MARATHON", well_label="A1", tags="TAGC")
+    e3 = PacBioEntity(
+        run_name="MARATHON", well_label="A1", tags="TAGC", plate_number=None
+    )
+    assert e1.plate_number is None
+    assert e2.plate_number is None
+    assert e3.plate_number is None
+    assert e1.json(exclude_none=True) == e2.json(exclude_none=True)
+    assert e1.json(exclude_none=True) == e3.json(exclude_none=True)
+    assert e1.hash_product_id() == e2.hash_product_id()
+    assert e1.hash_product_id() == e3.hash_product_id()
+
+    e1 = PacBioEntity(run_name="MARATHON", well_label="A1", plate_number=1)
+    e2 = PacBioEntity(run_name="MARATHON", well_label="A1")
+    assert e1.plate_number is None
+    assert e2.plate_number is None
+    assert e1.json() == e2.json()
+    assert e1.hash_product_id() == e2.hash_product_id()
+
+
+def test_multiple_plates_make_difference():
+
+    id_1 = PacBioEntity(
+        run_name="MARATHON", well_label="A1", tags="ACGT"
+    ).hash_product_id()
+    id_2 = PacBioEntity(
+        run_name="MARATHON", well_label="A1", tags="ACGT", plate_number=2
+    ).hash_product_id()
+    id_3 = PacBioEntity(
+        run_name="MARATHON", well_label="A1", tags="ACGT", plate_number=3
+    ).hash_product_id()
+    assert id_1 != id_2
+    assert id_3 != id_2
+
+    id_1 = PacBioEntity(run_name="MARATHON", well_label="A1").hash_product_id()
+    id_2 = PacBioEntity(
+        run_name="MARATHON", well_label="A1", plate_number=2
+    ).hash_product_id()
+    id_3 = PacBioEntity(
+        run_name="MARATHON", well_label="A1", plate_number=3
+    ).hash_product_id()
+    assert id_1 != id_2
+    assert id_3 != id_2
+
+    json = PacBioEntity(run_name="MARATHON", well_label="A1", plate_number=2).json(
+        exclude_none=True
+    )
+    assert json == '{"run_name": "MARATHON", "well_label": "A1", "plate_number": 2}'
+    json = PacBioEntity(
+        run_name="MARATHON", well_label="A1", tags="ACTGG", plate_number=2
+    ).json(exclude_none=True)
+    assert (
+        json
+        == '{"run_name": "MARATHON", "well_label": "A1", "plate_number": 2, "tags": "ACTGG"}'
+    )
+
+
 def test_expected_hashes():
     """Test against expected hashes."""
 

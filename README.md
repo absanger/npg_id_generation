@@ -20,22 +20,37 @@ package implements a Python API. The attributes of objects are sequencing
 platform specific. The generator for the PacBio platform is implemented by the
 `PacBioEntity` class.
 
-Examles of generating IDs for PacBio data:
+Examles of generating IDs for PacBio data from Python code:
 
 ```
-from npg_id_generation.main import PacBioEntity
+from npg_id_generation.pac_bio import PacBioEntity
 
 # from a JSON string via a class method
 test_case = '{"run_name": "MARATHON","well_label": "D1"}'
 print(PacBioEntity.parse_raw(test_case, content_type="json").hash_product_id())
 
 # by setting object's attributes
-print(PacBioEntity(run_name="MARATHON", well_label="D1").hash_product_id()
+print(PacBioEntity(run_name="MARATHON", well_label="D1").hash_product_id())
+print(PacBioEntity(
+    run_name="MARATHON",
+    well_label="D1",
+    plate_number=2
+  ).hash_product_id()
+)
 
 # sample-specific indentifier
 # for multiple tags a sorted comma-separated list of tagscan be used
 print(PacBioEntity(run_name="MARATHON", well_label="D1", tags="AAGTACGT").hash_product_id()
-``` 
+```
+
+The npg_id_generation package also contains a script, `generate_pac_bio_id`,
+which can be called from the command line. The script outputs the generated
+ID to the STDOUT stream. Use the `--help` option to find out details.
+
+```
+# Using the script in the Perl code:
+my $id = `npg_id_generation --run_name 'MARATHON' --well_label 'D1'`;
+```
 
 All generators should conform to a few simple rules:
 
@@ -60,6 +75,15 @@ o5 = PacBioEntity.parse_raw('{"well_label": "l1",  "run_name": "r1"}', content_t
 o6 = PacBioEntity.parse_raw('{"well_label": "l1","run_name": "r1", "tags": null}', content_type="json")
 ```
 
+In addition, to maintain backwards compatibility for PacBio Revio products,
+the following two objects should generate the same ID, meaning that the
+value of 1 for the plate number attribute is disregarded.
+
+```
+o1 = PacBioEntity(run_name="r1", well_label="l1")
+o2 = PacBioEntity(run_name="r1", well_label="l1", plate_number=1)
+```
+
 The algorithm used for generation of identifiers can be replicated in Perl;
-on identical input data it gives identical results. However, we cannot guarantee
-that this parity will always be maintained in future.
+on identical input data it gives identical results. However, we cannot
+guarantee that this parity will always be maintained in future.

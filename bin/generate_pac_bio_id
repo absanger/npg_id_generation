@@ -23,7 +23,9 @@ import argparse
 from npg_id_generation.pac_bio import PacBioEntity, concatenate_tags
 
 parser = argparse.ArgumentParser(
-    description="Generates a 64 character product id for a pac bio product.",
+    description="""
+    Generates a 64-character product ID for a PacBio sequencing product.
+    """,
     formatter_class=argparse.RawTextHelpFormatter,
 )
 
@@ -34,6 +36,17 @@ parser.add_argument(
     type=str,
     required=True,
     help="The name of the run to which the product belongs.",
+)
+
+parser.add_argument(
+    "-p",
+    "--plate_number",
+    "--plate-number",
+    required=False,
+    type=int,
+    help="""
+Plate number, relevant for Revio instruments only.
+     """,
 )
 
 parser.add_argument(
@@ -49,6 +62,7 @@ A well label should fit the pattern A1.
 )
 
 parser.add_argument(
+    "-t",
     "--tag",
     type=str,
     required=False,
@@ -69,7 +83,11 @@ separator = ","
 
 def main():
     tags = concatenate_tags(args.tag)
-    entity = PacBioEntity(run_name=args.run_name, well_label=args.well_label, tags=tags)
+    entity = PacBioEntity(
+        run_name=args.run_name,
+        plate_number=args.plate_number,
+        well_label=args.well_label,
+        tags=tags)
     print(f"{entity.hash_product_id()}\n")
 
 
