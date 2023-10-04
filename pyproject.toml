@@ -7,7 +7,7 @@ license = "GPL3-or-later"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-pydantic = "^1.9.1"
+pydantic = "^2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
