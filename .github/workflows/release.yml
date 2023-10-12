@@ -31,6 +31,7 @@ jobs:
       - name: Run poetry install
         run: |
           poetry env use '3.10'
+          poetry self add "poetry-dynamic-versioning[plugin]"
           poetry build
 
       - name: "Get release variables"
