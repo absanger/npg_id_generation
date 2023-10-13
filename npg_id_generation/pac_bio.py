@@ -21,8 +21,9 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 from hashlib import sha256
+from typing import Optional
 
-from pydantic import BaseModel, Extra, Field, validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 import re
 
 
@@ -42,7 +43,7 @@ def concatenate_tags(tags: list[str]):
         return ",".join(tags)
 
 
-class PacBioEntity(BaseModel, extra=Extra.forbid):
+class PacBioEntity(BaseModel):
     """A PacBio class for product ID generation."""
 
     """
@@ -56,10 +57,11 @@ class PacBioEntity(BaseModel, extra=Extra.forbid):
 
       Order the attributes alphabetically!
     """
+    model_config = ConfigDict(extra="forbid")
 
     run_name: str = Field(title="Pac Bio run name as in LIMS")
     well_label: str = Field(title="Pac Bio well label")
-    plate_number: int = Field(
+    plate_number: Optional[int] = Field(
         default=None,
         ge=1,
         title="Pac Bio plate number",
@@ -70,7 +72,7 @@ class PacBioEntity(BaseModel, extra=Extra.forbid):
         when the value of this attribute is 1, we reset it to undefined.
         """,
     )
-    tags: str = Field(
+    tags: Optional[str] = Field(
         default=None,
         title="A string representing tag or tags",
         description="""
@@ -81,13 +83,15 @@ class PacBioEntity(BaseModel, extra=Extra.forbid):
         """,
     )
 
-    @validator("run_name", "well_label", "tags")
+    @field_validator("run_name", "well_label", "tags")
+    @classmethod
     def attributes_are_non_empty_strings(cls, v):
         if (v is not None) and (v == ""):
             raise ValueError("Cannot be an empty string")
         return v
 
-    @validator("well_label")
+    @field_validator("well_label")
+    @classmethod
     def well_label_conforms_to_pattern(cls, v):
         if not re.match("^[A-Z][1-9][0-9]?$", v):
             raise ValueError(
@@ -95,11 +99,13 @@ class PacBioEntity(BaseModel, extra=Extra.forbid):
             )
         return v
 
-    @validator("plate_number")
+    @field_validator("plate_number")
+    @classmethod
     def plate_number_default(cls, v):
         return None if (v is None) or (v == 1) else v
 
-    @validator("tags")
+    @field_validator("tags")
+    @classmethod
     def tags_have_correct_characters(cls, v):
         if (v is not None) and (not re.match("^[ACGT]+(,[ACGT]+)*$", v)):
             raise ValueError(
@@ -110,6 +116,4 @@ class PacBioEntity(BaseModel, extra=Extra.forbid):
     def hash_product_id(self):
         """Generate a sha256sum for the PacBio Entity"""
 
-        return sha256(
-            self.json(exclude_none=True, separators=(",", ":")).encode()
-        ).hexdigest()
+        return sha256(self.model_dump_json(exclude_none=True).encode()).hexdigest()
