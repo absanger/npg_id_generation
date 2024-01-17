@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2023 Genome Research Ltd.
+# Copyright (c) 2022, 2023, 2024 Genome Research Ltd.
 #
 # Authors:
 #   Adam Blanchet <ab59@sanger.ac.uk>
@@ -20,11 +20,12 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
+import io
+import re
 from hashlib import sha256
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator, ConfigDict
-import re
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 def concatenate_tags(tags: list[str]):
@@ -55,7 +56,9 @@ class PacBioEntity(BaseModel):
       We are not using this explicit sort for now since it adds to the
       execution time.
 
-      Order the attributes alphabetically!
+      Order the attributes alphabetically to maintain order in the output
+      of model_to_json(). The hash_product_id() method does not depend on
+      the Pydantic ordering, however (it uses a custom JSON serializer).
     """
     model_config = ConfigDict(extra="forbid")
 
@@ -69,7 +72,8 @@ class PacBioEntity(BaseModel):
         Plate number is a positive integer and is relevant for Revio
         instruments only, thus it defaults to None.
         To be backward-compatible with Revio product IDs generated so far,
-        when the value of this attribute is 1, we reset it to undefined.
+        when the value of this attribute is 1, it is ignored when serializing
+        to generate an ID.
         """,
     )
     tags: Optional[str] = Field(
@@ -99,11 +103,6 @@ class PacBioEntity(BaseModel):
             )
         return v
 
-    @field_validator("plate_number")
-    @classmethod
-    def plate_number_default(cls, v):
-        return None if (v is None) or (v == 1) else v
-
     @field_validator("tags")
     @classmethod
     def tags_have_correct_characters(cls, v):
@@ -116,4 +115,27 @@ class PacBioEntity(BaseModel):
     def hash_product_id(self):
         """Generate a sha256sum for the PacBio Entity"""
 
-        return sha256(self.model_dump_json(exclude_none=True).encode()).hexdigest()
+        # Avoid using Pydantic's model_to_json() method as it requires somewhat
+        # complicated setup with decorators to create our backwards-compatible JSON
+        # serialization.
+
+        # The JSON is built with StringIO to ensure the order of the attributes and
+        # that it's faster than using json.dumps() with sort_keys=True (timeit
+        # estimates that this is ~4x faster.
+        json = io.StringIO()
+        json.write('{"run_name":"')
+        json.write(self.run_name)
+        json.write('","well_label":"')
+        json.write(self.well_label)
+        json.write('"')
+        if self.plate_number is not None and self.plate_number > 1:
+            json.write(',"plate_number":')
+            json.write(str(self.plate_number))
+            json.write('"')
+        if self.tags is not None:
+            json.write(',"tags":"')
+            json.write(self.tags)
+            json.write('"')
+        json.write("}")
+
+        return sha256(json.getvalue().encode("utf-8")).hexdigest()
