@@ -87,15 +87,38 @@ class PacBioEntity(BaseModel):
         """,
     )
 
+    def __init__(
+        self,
+        run_name: str,
+        well_label: str,
+        plate_number: int = None,
+        tags: str = None,
+        **kwargs
+    ):
+        """Create a new PacBioEntity.
+
+        Args:
+            run_name: PacBio run name as in LIMS
+            well_label: PacBio well label
+            plate_number: PacBio plate number
+            tags: A string representing a tag or tags
+
+        """
+        super().__init__(
+            run_name=run_name,
+            well_label=well_label,
+            plate_number=plate_number,
+            tags=tags,
+            **kwargs,
+        )
+
     @field_validator("run_name", "well_label", "tags")
-    @classmethod
     def attributes_are_non_empty_strings(cls, v):
         if (v is not None) and (v == ""):
             raise ValueError("Cannot be an empty string")
         return v
 
     @field_validator("well_label")
-    @classmethod
     def well_label_conforms_to_pattern(cls, v):
         if not re.match("^[A-Z][1-9][0-9]?$", v):
             raise ValueError(
@@ -104,7 +127,6 @@ class PacBioEntity(BaseModel):
         return v
 
     @field_validator("tags")
-    @classmethod
     def tags_have_correct_characters(cls, v):
         if (v is not None) and (not re.match("^[ACGT]+(,[ACGT]+)*$", v)):
             raise ValueError(
