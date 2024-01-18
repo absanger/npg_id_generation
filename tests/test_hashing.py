@@ -41,17 +41,14 @@ def test_whitespace():
 
 
 def test_different_ways_to_create_object():
-    results = []
-    results.append(PacBioEntity(run_name="MARATHON", well_label="A1").hash_product_id())
-    results.append(PacBioEntity(well_label="A1", run_name="MARATHON").hash_product_id())
-    results.append(
-        PacBioEntity(run_name="MARATHON", well_label="A1", tags=None).hash_product_id()
-    )
-    results.append(
+    results = [
+        PacBioEntity(run_name="MARATHON", well_label="A1").hash_product_id(),
+        PacBioEntity(well_label="A1", run_name="MARATHON").hash_product_id(),
+        PacBioEntity(run_name="MARATHON", well_label="A1", tags=None).hash_product_id(),
         PacBioEntity.model_validate_json(
             '{"run_name": "MARATHON", "well_label": "A1"}'
-        ).hash_product_id()
-    )
+        ).hash_product_id(),
+    ]
     assert len(set(results)) == 1
 
     with pytest.raises(ValidationError) as excinfo:
@@ -140,13 +137,13 @@ def test_plate_number_defaults():
     e3 = PacBioEntity(
         run_name="MARATHON", well_label="A1", tags="TAGC", plate_number=None
     )
-    assert e1.plate_number is None
+    assert e1.plate_number == 1
     assert e2.plate_number is None
     assert e3.plate_number is None
-    assert e1.model_dump_json(exclude_none=True) == e2.model_dump_json(
+    assert e1.model_dump_json(exclude_none=True) != e2.model_dump_json(
         exclude_none=True
     )
-    assert e1.model_dump_json(exclude_none=True) == e3.model_dump_json(
+    assert e1.model_dump_json(exclude_none=True) != e3.model_dump_json(
         exclude_none=True
     )
     assert e1.hash_product_id() == e2.hash_product_id()
@@ -154,9 +151,9 @@ def test_plate_number_defaults():
 
     e1 = PacBioEntity(run_name="MARATHON", well_label="A1", plate_number=1)
     e2 = PacBioEntity(run_name="MARATHON", well_label="A1")
-    assert e1.plate_number is None
+    assert e1.plate_number == 1
     assert e2.plate_number is None
-    assert e1.model_dump_json() == e2.model_dump_json()
+    assert e1.model_dump_json() != e2.model_dump_json()
     assert e1.hash_product_id() == e2.hash_product_id()
 
 
@@ -198,12 +195,15 @@ def test_multiple_plates_make_difference():
 
 def test_expected_hashes():
     """Test against expected hashes."""
+    # plate_number absent (historical runs) or plate_number == 1
+    p1_sha256 = "cda15311f706217e31e32d42d524bc35662a6fc15623ce5abe6a31ed741801ae"
+    # plate_number == 2
+    p2_sha256 = "7ca9d350c9b14f0883ac568220b8e5d97148a4eeb41d9de00b5733299d7bcd89"
 
     test_cases = [
-        (
-            '{"run_name": "MARATHON", "well_label": "A1"}',
-            "cda15311f706217e31e32d42d524bc35662a6fc15623ce5abe6a31ed741801ae",
-        ),
+        ('{"run_name": "MARATHON", "well_label": "A1"}', p1_sha256),
+        ('{"run_name": "MARATHON", "well_label": "A1", "plate_number": 1}', p1_sha256),
+        ('{"run_name": "MARATHON", "well_label": "A1", "plate_number": 2}', p2_sha256),
         (
             '{"run_name": "SEMI-MARATHON", "well_label": "D1"}',
             "b55417615e458c23049cc84822531a435c0c4069142f0e1d5e4378d48d9f7bd2",
@@ -242,3 +242,10 @@ def test_tags_not_sorted():
         != pb_entities[1].hash_product_id()
         != pb_entities[2].hash_product_id()
     )
+
+
+def test_regression_github_issue19():
+    # https://github.com/wtsi-npg/npg_id_generation/issues/19
+
+    e1 = PacBioEntity(run_name="MARATHON", well_label="A1", tags="ACGT", plate_number=1)
+    assert e1.plate_number == 1, "Plate number should be 1 and not None"
