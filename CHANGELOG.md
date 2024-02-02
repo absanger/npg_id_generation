@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0]
+
+### [Changed]
+
+ - Stopped the mutation of the `plate_number` attribute at the time the
+   PacBioEntity object instance is created. The value of the `plate_number`
+   attribute is now stored and retrieved as supplied. As a consequence, the
+   JSON string returned by the `model_dump_json` method of this Pydantic
+   object is now different when `plate_namber` value is 1.
+ - To retain backwards compatibility, the `hash_product_id` method is
+   reimplemented since it can no longer use for ID generation the string
+   returned by the `model_dump_json` method.
+
 ## [4.0.1]
 
 ### [Changed]
