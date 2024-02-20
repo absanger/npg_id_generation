@@ -196,14 +196,24 @@ def test_multiple_plates_make_difference():
 def test_expected_hashes():
     """Test against expected hashes."""
     # plate_number absent (historical runs) or plate_number == 1
-    p1_sha256 = "cda15311f706217e31e32d42d524bc35662a6fc15623ce5abe6a31ed741801ae"
+    id1_sha256 = "cda15311f706217e31e32d42d524bc35662a6fc15623ce5abe6a31ed741801ae"
     # plate_number == 2
-    p2_sha256 = "7ca9d350c9b14f0883ac568220b8e5d97148a4eeb41d9de00b5733299d7bcd89"
+    id2_sha256 = "9d883922744395bccb226069cc2b77eac867778e2e31c8c1ac3651ed2a83c059"
+    id3_sha256 = "dc77c4a7f34d84afbb895fcaee72fc8bead9dac20e8d3a9614091d9dd4519acd"
+    id4_sha256 = "e40d98a697a5ffcb09f7ed62597216094198c0d804be100bbb9f6050482182e3"
 
     test_cases = [
-        ('{"run_name": "MARATHON", "well_label": "A1"}', p1_sha256),
-        ('{"run_name": "MARATHON", "well_label": "A1", "plate_number": 1}', p1_sha256),
-        ('{"run_name": "MARATHON", "well_label": "A1", "plate_number": 2}', p2_sha256),
+        ('{"run_name": "MARATHON", "well_label": "A1"}', id1_sha256),
+        ('{"run_name": "MARATHON", "well_label": "A1", "plate_number": 1}', id1_sha256),
+        ('{"run_name": "MARATHON", "well_label": "A1", "plate_number": 2}', id2_sha256),
+        (
+            '{"run_name": "TRACTION_RUN_16", "well_label": "A1", "plate_number": 2}',
+            id3_sha256,
+        ),
+        (
+            '{"run_name": "TRACTION_RUN_16", "well_label": "A1", "plate_number": 3}',
+            id4_sha256,
+        ),
         (
             '{"run_name": "SEMI-MARATHON", "well_label": "D1"}',
             "b55417615e458c23049cc84822531a435c0c4069142f0e1d5e4378d48d9f7bd2",

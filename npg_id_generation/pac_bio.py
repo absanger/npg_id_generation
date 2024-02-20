@@ -20,7 +20,6 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-import io
 import re
 from hashlib import sha256
 from typing import Optional
@@ -57,8 +56,7 @@ class PacBioEntity(BaseModel):
       execution time.
 
       Order the attributes alphabetically to maintain order in the output
-      of model_to_json(). The hash_product_id() method does not depend on
-      the Pydantic ordering, however (it uses a custom JSON serializer).
+      of model_dump_json().
     """
     model_config = ConfigDict(extra="forbid")
 
@@ -112,27 +110,9 @@ class PacBioEntity(BaseModel):
     def hash_product_id(self):
         """Generate a sha256sum for the PacBio Entity"""
 
-        # Avoid using Pydantic's model_to_json() method as it requires somewhat
-        # complicated setup with decorators to create our backwards-compatible JSON
-        # serialization.
-
-        # The JSON is built with StringIO to ensure the order of the attributes and
-        # that it's faster than using json.dumps() with sort_keys=True (timeit
-        # estimates that this is ~4x faster.
-        json = io.StringIO()
-        json.write('{"run_name":"')
-        json.write(self.run_name)
-        json.write('","well_label":"')
-        json.write(self.well_label)
-        json.write('"')
         if self.plate_number is not None and self.plate_number > 1:
-            json.write(',"plate_number":')
-            json.write(str(self.plate_number))
-            json.write('"')
-        if self.tags is not None:
-            json.write(',"tags":"')
-            json.write(self.tags)
-            json.write('"')
-        json.write("}")
+            json = self.model_dump_json(exclude_none=True)
+        else:
+            json = self.model_dump_json(exclude_none=True, exclude=["plate_number"])
 
-        return sha256(json.getvalue().encode("utf-8")).hexdigest()
+        return sha256(json.encode()).hexdigest()

@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.1]
+
+### [Fixed]
+ - An existing bug in constructing a JSON representation for a Pydantic model
+   when the plate_number attribute is 2 or larger resulted in incorrect IDs
+   being generated. The fix includes a return to using Pydantic models' built-in
+   model_dump_json method in order to mitigate the risk that comes with  manual
+   generation of JSON strings.
+
 ## [5.0.0]
 
 ### [Changed]
